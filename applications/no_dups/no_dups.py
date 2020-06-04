@@ -1,7 +1,19 @@
 def no_dups(s):
-    # Your code here
+    counter = {}
 
+    output = ""
+    for idx, x in enumerate(s.split()):
+        try: 
+            counter[x]
+            pass
+        except KeyError:
+            counter[x] = 1
+    
+    for key in counter:
+        output += key + " "
 
+    return output
+        
 
 if __name__ == "__main__":
     print(no_dups(""))

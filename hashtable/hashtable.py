@@ -7,21 +7,18 @@ class HashTableEntry:
         self.value = value
         self.next = None
 
-
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
-
 
 class HashTable:
     """
     A hash table that with `capacity` buckets
     that accepts string keys
-
     Implement this.
     """
-
     def __init__(self, capacity):
-        # Your code here
+        self.capacity = [None] * MIN_CAPACITY
+        self.length = 0
 
 
     def get_num_slots(self):
@@ -34,7 +31,7 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
+        return len(self.capacity)
 
 
     def get_load_factor(self):
@@ -43,77 +40,83 @@ class HashTable:
 
         Implement this.
         """
-        # Your code here
-
-
-    def fnv1(self, key):
-        """
-        FNV-1 Hash, 64-bit
-
-        Implement this, and/or DJB2.
-        """
-
-        # Your code here
-
+        #number of things stored in the has table / number of slots in the array
+        return self.length // self.get_num_slots()
 
     def djb2(self, key):
-        """
-        DJB2 hash, 32-bit
+        hash = 5381
 
-        Implement this, and/or FNV-1.
-        """
-        # Your code here
+        for x in key:
+            hash = (( hash << 5) + hash) + ord(x)
+        return hash & 0xFFFFFFFF
 
 
     def hash_index(self, key):
-        """
-        Take an arbitrary key and return a valid integer index
-        between within the storage capacity of the hash table.
-        """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.djb2(key) % len(self.capacity)
+
 
     def put(self, key, value):
-        """
-        Store the value with the given key.
+        slot = self.hash_index(key)
 
-        Hash collisions should be handled with Linked List Chaining.
+        if self.capacity[slot] is not None:
+            if self.capacity[slot].value is not None:
+                cur = self.capacity[slot]
+                self.capacity[slot] = HashTableEntry(key, value)
+                self.capacity[slot].next = cur
 
-        Implement this.
-        """
-        # Your code here
+                # increment length
+                self.length += 1
+
+                #check for load size
+                if self.get_load_factor() >= 0.7:
+                    self.resize(MIN_CAPACITY * 2)
+                return
+
+        self.capacity[slot] = HashTableEntry(key, value)
+        # increment length
+        self.length += 1
+
+        #check for load size
+        if self.get_load_factor() >= 0.7:
+            self.resize(MIN_CAPACITY * 2)
 
 
     def delete(self, key):
-        """
-        Remove the value stored with the given key.
-
-        Print a warning if the key is not found.
-
-        Implement this.
-        """
-        # Your code here
+        self.put(key, None)
+        self.length -= 1
 
 
     def get(self, key):
-        """
-        Retrieve the value stored with the given key.
+        slot = self.hash_index(key)
+        hash_entry = self.capacity[slot]
 
-        Returns None if the key is not found.
+        if hash_entry is not None:
+            while hash_entry.next is not None:
+                if hash_entry.key == key:
+                    return hash_entry.value
+                hash_entry = hash_entry.next
 
-        Implement this.
-        """
-        # Your code here
+            return hash_entry.value
+        
+        return None
 
 
     def resize(self, new_capacity):
-        """
-        Changes the capacity of the hash table and
-        rehashes all key/value pairs.
+        global MIN_CAPACITY
+        MIN_CAPACITY = new_capacity
 
-        Implement this.
-        """
-        # Your code here
+        cur = self.capacity
+
+        self.capacity = [None] * MIN_CAPACITY
+        
+        for e in cur:
+            if(e is not None):
+                if (e.next is not None):
+                    pointer = e.next
+                    while pointer is not None:
+                        self.put(pointer.key, pointer.value)
+                        pointer = e.next
+                self.put(e.key, e.value)
 
 
 
@@ -132,6 +135,8 @@ if __name__ == "__main__":
     ht.put("line_10", "Long time the manxome foe he sought--")
     ht.put("line_11", "So rested he by the Tumtum tree")
     ht.put("line_12", "And stood awhile in thought.")
+
+    ht.get_load_factor()
 
     print("")
 
